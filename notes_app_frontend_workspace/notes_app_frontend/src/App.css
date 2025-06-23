@@ -1,11 +1,22 @@
 :root {
+  /* Light theme */
   --primary: #1976d2;
   --secondary: #424242;
   --accent: #ffca28;
-  --bg: #f9fafe;
-  --text-color: #212121;
+  --bg: #fff;
+  --text-color: #222;
   --border-color: #e0e0e0;
 }
+
+.dark-theme {
+  --primary: #18223c;
+  --secondary: #262c32;
+  --accent: #ffca28;
+  --bg: #181818;
+  --text-color: #fafafa;
+  --border-color: #23242b;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;

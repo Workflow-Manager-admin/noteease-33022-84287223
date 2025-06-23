@@ -1,11 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
+/**
+ * Notes app with theme mode (light/dark) support.
+ */
 // PUBLIC_INTERFACE
 function App() {
   // Note structure: {id, title, content, lastModified}
   const [notes, setNotes] = useState(() => {
-    // try to restore from localStorage
+    // Try to restore from localStorage
     try {
       const stored = window.localStorage.getItem('notes');
       return stored ? JSON.parse(stored) : [];
@@ -16,16 +19,46 @@ function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [editing, setEditing] = useState(false);
   const [noteDraft, setNoteDraft] = useState({ title: '', content: '' });
+  const [darkMode, setDarkMode] = useState(() => {
+    // initial from prefers-color-scheme
+    if (typeof window !== "undefined" && window.localStorage.getItem('theme-mode')) {
+      return window.localStorage.getItem('theme-mode') === 'dark';
+    }
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
   const titleInputRef = useRef(null);
 
-  const colorPalette = {
-    primary: '#1976d2',
-    secondary: '#424242',
-    accent: '#ffca28',
-    bg: '#f9fafe',
-    text: '#212121',
-    border: '#e0e0e0',
-  };
+  // Color palettes per mode
+  const colorPalette = darkMode
+    ? {
+        primary: '#18223c',
+        secondary: '#262c32',
+        accent: '#ffca28',
+        bg: '#181818',
+        text: '#fafafa',
+        border: '#23242b',
+      }
+    : {
+        primary: '#1976d2',
+        secondary: '#424242',
+        accent: '#ffca28',
+        bg: '#fff',
+        text: '#222',
+        border: '#e0e0e0',
+      };
+
+  // Effect: toggle .dark-theme class on <body>
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.classList.add('dark-theme');
+    } else {
+      root.classList.remove('dark-theme');
+    }
+    try {
+      window.localStorage.setItem('theme-mode', darkMode ? 'dark' : 'light');
+    } catch {}
+  }, [darkMode]);
 
   // Helpers
   function persistNotes(newNotes) {
@@ -239,24 +272,55 @@ function App() {
     <div className="app" style={{ background: colorPalette.bg, color: colorPalette.text }}>
       <nav className="navbar" style={{ background: colorPalette.primary, color: '#fff' }}>
         <div className="container" style={{ maxWidth: 1200 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <div className="logo">
               <span className="logo-symbol" style={{ color: colorPalette.accent, marginRight: 4 }}>
                 <svg width="18" height="18"><circle cx="9" cy="9" r="8" fill={colorPalette.accent}/></svg>
               </span>
               NoteEase
             </div>
-            <button className="btn"
-              style={{
-                backgroundColor: colorPalette.accent,
-                color: colorPalette.secondary,
-                fontWeight: 600,
-                marginLeft: 8,
-              }}
-              onClick={handleCreateNote}
-            >
-              + New Note
-            </button>
+            <div style={{
+                display: 'flex', alignItems: 'center', gap: '0.5em'
+              }}>
+              <button
+                className="btn"
+                aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+                title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+                style={{
+                  backgroundColor: colorPalette.bg,
+                  color: colorPalette.primary,
+                  border: `1.5px solid ${colorPalette.primary}`,
+                  fontWeight: 600,
+                  padding: "9px 14px",
+                  minWidth: 42,
+                  marginRight: 6,
+                }}
+                onClick={() => setDarkMode((prev) => !prev)}
+              >
+                {darkMode ?
+                  (<svg width="20" height="20" viewBox="0 0 20 20" style={{ display: "inline" }} aria-hidden>
+                    <circle cx="10" cy="10" r="7.5" fill="#ffa400" stroke="none"/>
+                    <circle cx="10" cy="10" r="5.5" fill={colorPalette.bg} stroke="none"/>
+                  </svg>)
+                  :
+                  (<svg width="20" height="20" viewBox="0 0 20 20" style={{ display: "inline" }} aria-hidden>
+                    <circle cx="10" cy="10" r="8" fill="#253b7a"/>
+                    <circle cx="13" cy="8" r="6" fill={colorPalette.bg}/>
+                  </svg>)
+                }
+              </button>
+              <button className="btn"
+                style={{
+                  backgroundColor: colorPalette.accent,
+                  color: colorPalette.secondary,
+                  fontWeight: 600,
+                  marginLeft: 4,
+                }}
+                onClick={handleCreateNote}
+              >
+                + New Note
+              </button>
+            </div>
           </div>
         </div>
       </nav>
